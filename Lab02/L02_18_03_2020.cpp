@@ -3,7 +3,7 @@
 #include <math.h>
 #include <fstream>
 
-//44261 A = 1, B = 6, C=2
+//44261 A = 1, B = 6, C=2s
 
 using namespace std;
 
