@@ -9,7 +9,7 @@ using namespace std;
 
 double ton_Prosty(double t, double A, double PHI, double f) { return double(A * sin(2 * M_PI * f * t + PHI)); }
 
-int kwantyzacja_Sygnalu(double t, double A, double PHI, double f, int Q) { return (((pow(2, Q) / 2) - 0.5) * A * sin(2 * M_PI * f * t + PHI) + ceil((pow(2, Q) / 2) - 0.5)); }
+int kwantyzacja_Sygnalu(double t, double A, double PHI, double f, int Q) { return (((pow(2, Q) / 2) - 0.5) * (ton_Prosty(t,A,PHI,f)) + ceil((pow(2, Q) / 2) - 0.5)); }
 //ceil - zaokrąglenie w górę
 int main()
 {
