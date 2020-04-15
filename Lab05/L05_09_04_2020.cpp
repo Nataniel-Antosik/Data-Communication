@@ -3,7 +3,6 @@
 #include<math.h>
 #include "math.h"
 #include <fstream>
-#include <vector>
 
 using namespace std;
 
@@ -61,6 +60,34 @@ double* skala_Czestotliwosci(double FS, int rozmiar) {
         tmp[j] = j * FS / rozmiar;
     }
     return tmp;
+}
+
+double szerokosc_Pasma(double * wartosc_F, double * czestotliwosc, int rozmiar) {
+    int max_X = 0;
+    double n_Rozmiar = ceil(rozmiar / 2); //połowa tablicy
+    for (int i = 0; i < n_Rozmiar; i++) { 
+        if (wartosc_F[i] > wartosc_F[max_X]) {
+            max_X = i;
+        }
+    }
+    double pomniejszona_w_Funkcji = (wartosc_F[max_X] - 3); //wartosc pomniejszona o 3 db
+    double roznica = pomniejszona_w_Funkcji - wartosc_F[0]; //różnica od lewej wartości
+    double fmin = czestotliwosc[0];
+    double fmax = czestotliwosc[max_X + 1];
+    for (int i = 1; i < max_X; i++) {
+        if (roznica > pomniejszona_w_Funkcji - wartosc_F[i]) { //jeżeli znajdę mniejszą różnicę to zamieniam różnicę i nową wartość minimalną
+            roznica = pomniejszona_w_Funkcji - wartosc_F[i];
+            fmin = czestotliwosc[i];
+        }
+    }
+    roznica = pomniejszona_w_Funkcji - wartosc_F[max_X + 1]; //to samo co na górze tylko bierzemy wartość z prawej strony od naszego znalezionego maksa
+    for (int i = max_X + 2; i < n_Rozmiar; i++) {
+        if (roznica > pomniejszona_w_Funkcji - wartosc_F[i]) {
+            roznica = pomniejszona_w_Funkcji - wartosc_F[i];
+            fmax = czestotliwosc[i];
+        }
+    }
+    return fmax - fmin;
 }
 
 int main()
@@ -177,13 +204,15 @@ int main()
     for (int i = 0; i < t_K * fs; i++) {
         zad2_a_zA << skala_C[i] << " " << decybel1[i] << endl;
     }
-
+    cout << "Szerokosc pasma sygnalu zA(t) a) wynosi " << szerokosc_Pasma(decybel1, skala_C, t_K * fs) << endl;
+    
     Zp_a = DFT(zp_a, t_K * fs);
     decybel2 = widmo_A_Dec(Zp_a, t_K * fs);
     ofstream zad2_a_zp("zad2_a_zp.dat");
     for (int i = 0; i < t_K * fs; i++) {
         zad2_a_zp << skala_C[i] << " " << decybel2[i] << endl;
     }
+    cout << "Szerokosc pasma sygnalu zp(t) a) wynosi " << szerokosc_Pasma(decybel2, skala_C, t_K * fs) << endl;
 
     ZA_b = DFT(zA_b, t_K * fs);
     decybel3 = widmo_A_Dec(ZA_b, t_K * fs);
@@ -191,13 +220,15 @@ int main()
     for (int i = 0; i < t_K * fs; i++) {
         zad2_b_zA << skala_C[i] << " " << decybel3[i] << endl;
     }
-
+    cout << "Szerokosc pasma sygnalu zA(t) b) wynosi " << szerokosc_Pasma(decybel3, skala_C, t_K * fs) << endl;
+ 
     Zp_b = DFT(zp_b, t_K * fs);
     decybel4 = widmo_A_Dec(Zp_b, t_K * fs);
     ofstream zad2_b_zp("zad2_b_zp.dat");
     for (int i = 0; i < t_K * fs; i++) {
         zad2_b_zp << skala_C[i] << " " << decybel4[i] << endl;
     }
+    cout << "Szerokosc pasma sygnalu zp(t) b) wynosi " << szerokosc_Pasma(decybel4, skala_C, t_K * fs) << endl;
 
     ZA_c = DFT(zA_c, t_K * fs);
     decybel5 = widmo_A_Dec(ZA_c, t_K * fs);
@@ -205,13 +236,24 @@ int main()
     for (int i = 0; i < t_K * fs; i++) {
         zad2_c_zA << skala_C[i] << " " << decybel5[i] << endl;
     }
-
+    cout << "Szerokosc pasma sygnalu zA(t) c) wynosi " << szerokosc_Pasma(decybel5, skala_C, t_K * fs) << endl;
+  
     Zp_c = DFT(zp_c, t_K * fs);
     decybel6 = widmo_A_Dec(Zp_c, t_K * fs);
     ofstream zad2_c_zp("zad2_c_zp.dat");
     for (int i = 0; i < t_K * fs; i++) {
         zad2_c_zp << skala_C[i] << " " << decybel6[i] << endl;
     }
-    
+    cout << "Szerokosc pasma sygnalu zp(t) c) wynosi " << szerokosc_Pasma(decybel6, skala_C, t_K * fs) << endl;
+   
+    //zadanie 3
+
+    //Szerokosc pasma sygnalu zA(t) a) wynosi 4
+    //Szerokosc pasma sygnalu zp(t) a) wynosi 5
+    //Szerokosc pasma sygnalu zA(t) b) wynosi 5
+    //Szerokosc pasma sygnalu zp(t) b) wynosi 3
+    //Szerokosc pasma sygnalu zA(t) c) wynosi 5
+    //Szerokosc pasma sygnalu zp(t) c) wynosi 58
+
     return 0;
 }
