@@ -54,10 +54,10 @@ string S2BS(char in[], bool Switch) {           //String to Binary Stream
 
 int main()
 {
-    char dupa[4] = "agp";
+    char d[4] = "agp";
 
-    cout << "Little endian:  " << S2BS(dupa, 0);
-    cout << "Big endian:     " << S2BS(dupa, 1);
+    cout << "Little endian:  " << S2BS(d, 0);
+    cout << "Big endian:     " << S2BS(d, 1);
     return 0;
 }
 
