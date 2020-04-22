@@ -1,5 +1,5 @@
 ﻿#define _USE_MATH_DEFINES
-#include<sstream>
+#include <sstream>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -103,9 +103,9 @@ int *konwersja(string dane,int * wyjscie) {
     return wyjscie;
 }
 
-int* rozszerzenie(int * wejscie, int * wyjscie, int czestotliwosc, int Tb) {   
+int* rozszerzenie(int * wejscie, int * wyjscie, int czestotliwosc, int Tb, int bity) {   
     int k = 0;
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < bity; i++) {
         if (wejscie[i] == 0) {
             for (int j = 0; j < czestotliwosc * Tb; j++) {
                 wyjscie[k] = 0;
@@ -161,7 +161,7 @@ int main()
     
     cout << "Little endian:  " << d1 << endl;
     double A1, A2, A, F1, F0, F, Phi0, Phi1, Phi, Fs, Tb, N;
-
+    int bity = 0;
     //test//
     int rozmiar = d1.length() - 1;
     int* a1;
@@ -189,23 +189,31 @@ int main()
     A2 = 2;
     A = 3; 
     F = N * Tb;
-    int* k = new int[Fs * Tb * 10];
-    k = rozszerzenie(a1, k, Fs, Tb);
+    bity = 10;
+    int* k = new int[Fs * Tb * bity];
+    k = rozszerzenie(a1, k, Fs, Tb, bity);
+    
+      
+    //zad 2
+    int* k2 = new int[Fs * rozmiar];
+    bity = rozmiar;
+    k2 = rozszerzenie(a1, k, Fs, Tb, bity);
 
-    double* probka = new double[Fs * 10](); //Próbkowanie
-    double tmp = 0;
-    for (int i = 0; i < Fs * 10; i++) {
-        probka[i] = tmp;
-        tmp += 0.01;
-    }    
-    /*
     double* probka2 = new double[Fs * rozmiar](); //Próbkowanie
     double tmp2 = 0;
     for (int i = 0; i < Fs * rozmiar; i++) {
-        probka2[i] = tmp;
+        probka2[i] = tmp2;
         tmp2 += 0.01;
     }
-    */
+
+    double tmp = 0;
+    double* probka = new double[Fs * 10](); //Próbkowanie
+    tmp = 0;
+    for (int i = 0; i < Fs * 10; i++) {
+        probka[i] = tmp;
+        tmp += 0.01;
+    }
+
     zespolona* zA_W, * zF_W, * zP_W;
     double* decybel, * skala_C, * zA_A, * zP_A, * zF_A;
     
@@ -220,25 +228,25 @@ int main()
 
     decybel = new double[Fs * 10]();
     //=============================//
-    /*
+    
     ofstream zad2_zA("zad2_zA.dat");
     for (int i = 0; i < Fs * rozmiar; i++) {
-        zad2_zA << probka2[i] << " " << zA(A1, A2, probka2[i], F, Phi, k[i]) << endl;
+        zad2_zA << probka2[i] << " " << zA(A1, A2, probka2[i], F, Phi, k2[i]) << endl;
     }
 
     ofstream zad2_zF("zad2_zF.dat");
     for (int i = 0; i < Fs * rozmiar; i++) {
-        zad2_zF << probka2[i] << " " << zF(A, probka2[i], F0, F1, Phi, k[i]) << endl;
+        zad2_zF << probka2[i] << " " << zF(A, probka2[i], F0, F1, Phi, k2[i]) << endl;
     }
 
     ofstream zad2_zP("zad2_zP.dat");
     for (int i = 0; i < Fs * rozmiar; i++) {
-        zad2_zP << probka2[i] << " " << zP(A, probka2[i], F, Phi0, Phi1, k[i]) << endl;
+        zad2_zP << probka2[i] << " " << zP(A, probka2[i], F, Phi0, Phi1, k2[i]) << endl;
     }
-    */
-    ofstream zad3_inf("zad3_inf.dat");
+    
+    ofstream zad_inf("zad_inf.dat");
     for (int i = 0; i < Fs * 10; i++) {
-        zad3_inf << probka[i] << " " << k[i] << endl;
+        zad_inf << probka[i] << " " << k[i] << endl;
     }
 
     ofstream zad3_zA("zad3_zA.dat");
@@ -288,6 +296,7 @@ int main()
     //Szerokość pasma sygnału zA(t) wynosi: 1
     //Szerokość pasma sygnału zF(t) wynosi: 0.6
     //Szerokość pasma sygnału zP(t) wynosi: 1.5
+
     return 0;
 }
 
