@@ -156,12 +156,12 @@ string S2BS(char in[], bool Switch) {           //String to Binary Stream
 
 int main()
 {
-    char d[10] = "ABC";
+    char d[26] = "abcdefghchijklmnoprstuwyz";
     string d1 = S2BS(d, 1);
     
     cout << "Little endian:  " << d1 << endl;
     double A1, A2, A, F1, F0, F, Phi0, Phi1, Phi, Fs, Tb, N;
-    int bity = 0;
+    int bit10 = 0, bit = 0;
     //test//
     int rozmiar = d1.length() - 1;
     int* a1;
@@ -189,15 +189,15 @@ int main()
     A2 = 2;
     A = 3; 
     F = N * Tb;
-    bity = 10;
-    int* k = new int[Fs * Tb * bity];
-    k = rozszerzenie(a1, k, Fs, Tb, bity);
+    bit10 = 10;
+    int* k = new int[Fs * Tb * bit10];
+    k = rozszerzenie(a1, k, Fs, Tb, bit10);
     
       
     //zad 2
     int* k2 = new int[Fs * rozmiar];
-    bity = rozmiar;
-    k2 = rozszerzenie(a1, k, Fs, Tb, bity);
+    bit = rozmiar;
+    k2 = rozszerzenie(a1, k, Fs, Tb, bit);
 
     double* probka2 = new double[Fs * rozmiar](); //Próbkowanie
     double tmp2 = 0;
@@ -218,30 +218,35 @@ int main()
     double* decybel, * skala_C, * zA_A, * zP_A, * zF_A;
     
     //=====Deklaracja_pamięci======//
-    zA_W = new zespolona[Fs * 10];
-    zF_W = new zespolona[Fs * 10];
-    zP_W = new zespolona[Fs * 10];
+    zA_W = new zespolona[Fs * bit]();
+    zF_W = new zespolona[Fs * bit]();
+    zP_W = new zespolona[Fs * bit]();
 
-    zA_A = new double[Fs * 10];
-    zP_A = new double[Fs * 10];
-    zF_A = new double[Fs * 10];
+    zA_A = new double[Fs * bit]();
+    zP_A = new double[Fs * bit]();
+    zF_A = new double[Fs * bit]();
 
-    decybel = new double[Fs * 10]();
+    decybel = new double[Fs * bit]();
+
+    skala_C = skala_Czestotliwosci(Fs, Fs * bit);
     //=============================//
     
     ofstream zad2_zA("zad2_zA.dat");
     for (int i = 0; i < Fs * rozmiar; i++) {
         zad2_zA << probka2[i] << " " << zA(A1, A2, probka2[i], F, Phi, k2[i]) << endl;
+        zA_A[i] = zA(A1, A2, probka2[i], F, Phi, k2[i]);
     }
 
     ofstream zad2_zF("zad2_zF.dat");
     for (int i = 0; i < Fs * rozmiar; i++) {
         zad2_zF << probka2[i] << " " << zF(A, probka2[i], F0, F1, Phi, k2[i]) << endl;
+        zF_A[i] = zF(A, probka2[i], F0, F1, Phi, k2[i]);
     }
 
     ofstream zad2_zP("zad2_zP.dat");
     for (int i = 0; i < Fs * rozmiar; i++) {
         zad2_zP << probka2[i] << " " << zP(A, probka2[i], F, Phi0, Phi1, k2[i]) << endl;
+        zP_A[i] = zP(A, probka2[i], F, Phi0, Phi1, k2[i]);
     }
     
     ofstream zad_inf("zad_inf.dat");
@@ -251,47 +256,42 @@ int main()
 
     ofstream zad3_zA("zad3_zA.dat");
     for (int i = 0; i < Fs * 10; i++) {
-        zad3_zA << probka[i] << " " << zA(A1, A2, probka[i], F, Phi, k[i]) << endl;
-        zA_A[i] = zA(A1, A2, probka[i], F, Phi, k[i]);
+        zad3_zA << probka[i] << " " << zA(A1, A2, probka[i], F, Phi, k[i]) << endl;      
     }
 
     ofstream zad3_zF("zad3_zF.dat");
     for (int i = 0; i < Fs * 10; i++) {
-        zad3_zF << probka[i] << " " << zF(A, probka[i], F0, F1, Phi, k[i]) << endl;
-        zF_A[i] = zF(A, probka[i], F0, F1, Phi, k[i]);
+        zad3_zF << probka[i] << " " << zF(A, probka[i], F0, F1, Phi, k[i]) << endl;       
     }
 
     ofstream zad3_zP("zad3_zP.dat");
     for(int i = 0; i < Fs * 10; i++){
-        zad3_zP << probka[i] << " " << zP(A, probka[i], F, Phi0, Phi1, k[i]) << endl;
-        zP_A[i] = zP(A, probka[i], F, Phi0, Phi1, k[i]);
+        zad3_zP << probka[i] << " " << zP(A, probka[i], F, Phi0, Phi1, k[i]) << endl;      
     }
 
-    skala_C = skala_Czestotliwosci(Fs, Fs * 10);
-
-    zA_W = DFT(zA_A, Fs * 10);
-    decybel = widmo_A_Dec(zA_W, Fs * 10);
+    zA_W = DFT(zA_A, Fs * bit);
+    decybel = widmo_A_Dec(zA_W, Fs * bit);
     ofstream zad4_zA("zad4_zA.dat");
-    for (int i = 0; i < Fs * 10; i++) {
+    for (int i = 0; i < Fs * bit; i++) {
         zad4_zA << skala_C[i] << " " << decybel[i] << endl;
     }
-    cout << "Szerokosc pasma sygnalu zA(t) a) wynosi " << szerokosc_Pasma(decybel, skala_C, Fs * 10) << endl;
+    cout << "Szerokosc pasma sygnalu zA(t) a) wynosi " << szerokosc_Pasma(decybel, skala_C, Fs * bit) << endl;
 
-    zF_W = DFT(zF_A, Fs * 10);
-    decybel = widmo_A_Dec(zF_W, Fs * 10);
+    zF_W = DFT(zF_A, Fs * bit);
+    decybel = widmo_A_Dec(zF_W, Fs * bit);
     ofstream zad4_zF("zad4_zF.dat");
-    for (int i = 0; i < Fs * 10; i++) {
+    for (int i = 0; i < Fs * bit; i++) {
         zad4_zF << skala_C[i] << " " << decybel[i] << endl;
     }
-    cout << "Szerokosc pasma sygnalu zF(t) a) wynosi " << szerokosc_Pasma(decybel, skala_C, Fs * 10) << endl;
+    cout << "Szerokosc pasma sygnalu zF(t) a) wynosi " << szerokosc_Pasma(decybel, skala_C, Fs * bit) << endl;
 
-    zP_W = DFT(zP_A, Fs * 10);
-    decybel = widmo_A_Dec(zP_W, Fs * 10);
+    zP_W = DFT(zP_A, Fs * bit);
+    decybel = widmo_A_Dec(zP_W, Fs * bit);
     ofstream zad4_zP("zad4_zP.dat");
-    for (int i = 0; i < Fs * 10; i++) {
+    for (int i = 0; i < Fs * bit; i++) {
         zad4_zP << skala_C[i] << " " << decybel[i] << endl;
     }
-    cout << "Szerokosc pasma sygnalu zP(t) a) wynosi " << szerokosc_Pasma(decybel, skala_C, Fs * 10) << endl;
+    cout << "Szerokosc pasma sygnalu zP(t) a) wynosi " << szerokosc_Pasma(decybel, skala_C, Fs * bit) << endl;
     
     //Szerokość pasma sygnału zA(t) wynosi: 1
     //Szerokość pasma sygnału zF(t) wynosi: 0.6
