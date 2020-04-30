@@ -107,15 +107,13 @@ double* x(double* wejscie1, double* wejscie2, double* wyjscie, double bity, doub
     return wyjscie;
 }
 
-double* p(double* wejscie1, double* wejscie2, double* wyjscie, double bity, double czestotliwosc) { //całka
+double* p(double* wyjscie, double bity, double czestotliwosc) { //całka
     int j = 0, k = 0, n = czestotliwosc;
     double suma = 0;
     for (int i = 0; i < bity; i++) {
         for (j; j < n; j++) {
             suma += wyjscie[j] * 1 / czestotliwosc;
-        }
-        for (k; k < n; k++) {
-            wyjscie[k] = suma;
+            wyjscie[j] = suma;
         }
         n += czestotliwosc;
         suma = 0;
@@ -126,10 +124,10 @@ double* p(double* wejscie1, double* wejscie2, double* wyjscie, double bity, doub
 double* demodulator_ASK_PSK(double* wejscie1, double* wejscie2, double* wyjscie, double bity, double czestotliwosc, double h) {
 
     wyjscie = x(wejscie1, wejscie2, wyjscie, bity, czestotliwosc);
-    wyjscie = p(wejscie1, wejscie2, wyjscie, bity, czestotliwosc);
+    wyjscie = p(wyjscie, bity, czestotliwosc);
 
     for (int i = 0; i < czestotliwosc * bity; i++)
-        wyjscie[i] = (wyjscie[i] > h) ? 1 : 0;
+        wyjscie[i] = (wyjscie[i] >= h) ? 1 : 0;
 
     return wyjscie;
 }
@@ -141,15 +139,15 @@ double* demodulator_FSK(double* wejscie1, double* wejscie2, double* wejscie3, do
 
     F1 = x(wejscie1, wejscie2, F1, bity, czestotliwosc);
     F2 = x(wejscie1, wejscie3, F2, bity, czestotliwosc);
-    F1 = p(wejscie1, wejscie2, F1, bity, czestotliwosc);
-    F2 = p(wejscie1, wejscie3, F2, bity, czestotliwosc);
+    F1 = p(F1, bity, czestotliwosc);
+    F2 = p(F2, bity, czestotliwosc);
 
     for (int i = 0; i < rozmiar; i++) {
         wyjscie[i] = F2[i] - F1[i];
     }
 
     for (int i = 0; i < czestotliwosc * bity; i++)
-        wyjscie[i] = (wyjscie[i] > h) ? 1 : 0;
+        wyjscie[i] = (wyjscie[i] >= h) ? 1 : 0;
 
     return wyjscie;
 }
@@ -233,34 +231,34 @@ int main()
         zF_1_2[i] = zF2(A, probka2[i], F1, Phi);
     }
 
-    zA_1_m = demodulator_ASK_PSK(zA_1, zA_1_1, zA_1_m, bity, Fs, 1.5);
-    zP_1_m = demodulator_ASK_PSK(zA_1, zP_1_1, zP_1_m, bity, Fs, 2);
-    zF_1_m = demodulator_FSK(zF_1, zF_1_1, zF_1_2, zF_1_m, bity, Fs, 5);
+    zA_1_m = demodulator_ASK_PSK(zA_1, zA_1_1, zA_1_m, bity, Fs, 1.01);
+    zP_1_m = demodulator_ASK_PSK(zA_1, zP_1_1, zP_1_m, bity, Fs, 1.37);
+    zF_1_m = demodulator_FSK(zF_1, zF_1_1, zF_1_2, zF_1_m, bity, Fs, 1);
 
     zA_1_x = x(zA_1, zA_1_1, zA_1_x, bity, Fs);
     cout << zA_1_x[1];
     for (int i = 0; i < Fs * rozmiar; i++) {
         zA_1_p[i] = zA_1_x[i];
     }  
-    zA_1_p = p(zA_1, zA_1_1, zA_1_p, bity, Fs);
+    zA_1_p = p(zA_1_p, bity, Fs);
 
     zP_1_x = x(zP_1, zP_1_1, zP_1_x, bity, Fs);
     for (int i = 0; i < Fs * rozmiar; i++) {
         zP_1_p[i] = zP_1_x[i];
     }
-    zP_1_p = p(zP_1, zP_1_1, zP_1_p, bity, Fs);
+    zP_1_p = p(zP_1_p, bity, Fs);
 
     zF_1_x_1 = x(zF_1, zF_1_1, zF_1_x_1, bity, Fs);
     for (int i = 0; i < Fs * rozmiar; i++) {
         zF_1_p_1[i] = zF_1_x_1[i];
     }
-    zF_1_p_1 = p(zF_1, zF_1_1, zF_1_p_1, bity, Fs);
+    zF_1_p_1 = p(zF_1_p_1, bity, Fs);
 
     zF_1_x_2 = x(zF_1, zF_1_2, zF_1_x_2, bity, Fs);
     for (int i = 0; i < Fs * rozmiar; i++) {
         zF_1_p_2[i] = zF_1_x_2[i];
     }
-    zF_1_p_2 = p(zF_1, zF_1_2, zF_1_p_2, bity, Fs);
+    zF_1_p_2 = p(zF_1_p_2, bity, Fs);
 
     for (int i = 0; i < Fs * rozmiar; i++) {
         zF_1_p[i] = zF_1_p_2[i] - zF_1_p_1[i];
