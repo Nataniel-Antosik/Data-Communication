@@ -72,18 +72,19 @@ void negacja(int* h, int indeks) {
     else { cout << endl << "Wprowadzono zly indeks" << endl; }
 }
 
-void indeks_Korekty(int* h) {
+void indeks_Korekty(int* h, int n) {
     int* p = new int[3];
     p[0] = (h[0] + h[2] + h[4] + h[6]) % 2;
     p[1] = (h[1] + h[2] + h[5] + h[6]) % 2;
     p[2] = (h[3] + h[4] + h[5] + h[6]) % 2;
-    int n = p[0] * 1 + p[1] * 2 + p[2] * 4;
+    n = p[0] * 1 + p[1] * 2 + p[2] * 4;
     if (n > 0) { negacja(h, n - 1); }
 }
 
 int* dekoder_Hamminga(int* h) {
     int* wynik = new int[4];
-    indeks_Korekty(h);
+    int n = 0;
+    indeks_Korekty(h, n);
     wynik[0] = h[2];
     wynik[1] = h[4];
     wynik[2] = h[5];
@@ -93,12 +94,12 @@ int* dekoder_Hamminga(int* h) {
 
 int* dekoder_SECDED(int* h) {
     //Krok 1) 
-    int p4 = 0; 
+    int p4 = 0, n = 0; 
     for (int i = 0; i < 7; i++) p4 += h[i]; //Weryfikacja p4
     p4 %= 2;
     if (p4 != h[7]) { cout << endl << "Szansa na poprawny wynik: 50%" << endl; }
     //Krok 2), 3), 4)  
-    indeks_Korekty(h); //sprawdzamy p1 p2 p3, wyznaczamy indeks korekty i negujemy wskazany bit
+    indeks_Korekty(h, n); //sprawdzamy p1 p2 p3, wyznaczamy indeks korekty i negujemy wskazany bit
     //Krok 5)
     p4 = 0;
     for (int i = 0; i < 7; i++) p4 += h[i]; //Ponowna weryfikacja p4
@@ -108,7 +109,7 @@ int* dekoder_SECDED(int* h) {
         cout << endl << "Sa 2 bledy, wykonaj ponowna transmisje" << endl; 
         return NULL;
     }
-    cout << endl << "Jest 1 blad, zostal juz naprawiony" << endl;
+    if (n == 1) { cout << endl << "Jest 1 blad, zostal juz naprawiony" << endl; }
     return dekoder_Hamminga(h);
 }
 
