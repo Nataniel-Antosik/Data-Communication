@@ -59,7 +59,7 @@ int * kod_Hamminga(int * bity, bool wybor = true) {
     h[5] = bity[2];
     h[6] = bity[3];
 
-    if (wybor != true) { //SECDEC
+    if (wybor != true) { //SECDED
         for (int i = 0; i < 7; i++) { p4 += h[i]; }
         p4 %= 2;
         h[7] = p4;
@@ -91,7 +91,7 @@ int* dekoder_Hamminga(int* h) {
     return wynik;
 }
 
-int* dekoder_SECDEO(int* h) {
+int* dekoder_SECDED(int* h) {
     //Krok 1) 
     int p4 = 0; 
     for (int i = 0; i < 7; i++) p4 += h[i]; //Weryfikacja p4
@@ -163,7 +163,7 @@ int main()
     }
     cout << "Dekodowanie kodu Hamminga (8,4): " << endl;
     for (int i = 0; i < 6; i++) {
-        dekodowanie8[i] = dekoder_Hamminga(Hamming8[i]);
+        dekodowanie8[i] = dekoder_SECDED(Hamming8[i]);
         for (int j = 0; j < 4; j++) {
             cout << dekodowanie8[i][j];
         }
