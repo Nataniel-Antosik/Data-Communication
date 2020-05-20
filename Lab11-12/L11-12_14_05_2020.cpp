@@ -57,9 +57,9 @@ string konwersja_String(int* wejscie, int rozmiar) {
         }
         else {
             str << '0';
-        }
-        dane = str.str();
+        }       
     }
+    dane = str.str();
     return dane;
 }
 
@@ -257,11 +257,17 @@ int* rozszerzenie(int* wejscie, int* wyjscie, double czestotliwosc, double Tb, i
     return wyjscie;
 }
 
-int SB2S() {
-    return 0;
+string SB2S(string binaryString) {
+    string text = "";
+    stringstream sstream(binaryString);
+    while (sstream.good()) {
+        bitset<8> bits;
+        sstream >> bits;
+        text += char(bits.to_ulong());
+    }
+    return text;
 }
 
-//===============
 int main()
 {
     //Dane
@@ -374,13 +380,6 @@ int main()
     d_zP = new int[rozmiar_H];
     d_zF = new int[rozmiar_H];
 
-    /*testowanie całek
-    double* zA_1_p = new double[rozmiar_Rozszerzony];
-    double* zP_1_p = new double[rozmiar_Rozszerzony];
-    double* zF_1_p = new double[rozmiar_Rozszerzony];
-    double* zF_2_p = new double[rozmiar_Rozszerzony];
-    */
-
     for (int i = 0; i < rozmiar_Rozszerzony; i++) {
         zA_1_1[i] = zA1(A2, probka2[i], F, Phi);
         zP_1_1[i] = zP1(A, probka2[i], F, Phi1);
@@ -415,36 +414,7 @@ int main()
         d_zF[i] = zF_1_m[n];
         n += 100;
     }
-    /*
-    zA_1_p = x(zA_1, zA_1_1, zA_1_p, rozmiar_H, Fs, Tb);
-    zA_1_p = p(zA_1_p, rozmiar_H, Fs, Tb);
-
-    zP_1_p = x(zP_1, zP_1_1, zP_1_p, rozmiar_H, Fs, Tb);
-    zP_1_p = p(zP_1_p, rozmiar_H, Fs, Tb);
-
-    zF_2_p = x(zF_1, zF_1_2, zF_2_p, rozmiar_H, Fs, Tb);
-    zF_1_p = x(zF_1, zF_1_1, zF_1_p, rozmiar_H, Fs, Tb);
-    zF_1_p = p(zF_1_p, rozmiar_H, Fs, Tb);
-    zF_2_p = p(zF_2_p, rozmiar_H, Fs, Tb);
-    double* roz = new double[rozmiar_Rozszerzony];
-    for (int i = 0; i < rozmiar_Rozszerzony; i++) {
-        roz[i] = zF_2_p[i] - zF_1_p[i];
-    }
-    ofstream zad_zA_p("zad_zA_p.dat");
-    for (int i = 0; i < rozmiar_Rozszerzony; i++) {
-        zad_zA_p << probka2[i] << " " << zA_1_p[i] << endl;
-    }
-
-    ofstream zad_zP_p("zad_zP_p.dat");
-    for (int i = 0; i < rozmiar_Rozszerzony; i++) {
-        zad_zP_p << probka2[i] << " " << zP_1_p[i] << endl;
-    }
-
-    ofstream zad_zF_p("zad_zF_p.dat");
-    for (int i = 0; i < rozmiar_Rozszerzony; i++) {
-        zad_zF_p << probka2[i] << " " << roz[i] << endl;
-    }
-    */
+  
     //===========Dekodowanie kanałowe===========//
     
     int** d_zA_Hamming;
@@ -489,17 +459,22 @@ int main()
     cout << endl << endl;
     //===========Dane===========//
     int* d_H_ZA;
-    int* d_H_ZP = new int[rozmiar];
-    int* d_H_ZF = new int[rozmiar];
-
-    d_H_ZA = nowa_Tablica3(d_zA_Hamming, rozmiar, parita_Bitow);
-    d_H_ZP = nowa_Tablica3(d_zP_Hamming, rozmiar, parita_Bitow);
-    d_H_ZF = nowa_Tablica3(d_zF_Hamming, rozmiar, parita_Bitow);
-
+    int* d_H_ZP;
+    int* d_H_ZF;
     string s_zA, s_zP, s_zF;
+
+    d_H_ZA = nowa_Tablica3(dekodowanie_zA_H, rozmiar + 1, parita_Bitow);
+    d_H_ZP = nowa_Tablica3(dekodowanie_zP_H, rozmiar + 1, parita_Bitow);
+    d_H_ZF = nowa_Tablica3(dekodowanie_zF_H, rozmiar + 1, parita_Bitow);
+
     s_zA = konwersja_String(d_H_ZA, rozmiar);
+    s_zP = konwersja_String(d_H_ZA, rozmiar);
+    s_zF = konwersja_String(d_H_ZA, rozmiar);
+    
+    cout << endl << "Wynik toru transmisyjnego dla modulacji zA: " << SB2S(s_zA);
+    cout << endl << "Wynik toru transmisyjnego dla modulacji zP: " << SB2S(s_zP);
+    cout << endl << "Wynik toru transmisyjnego dla modulacji zF: " << SB2S(s_zF);
     cout << endl;
-    cout << s_zA;
     return 0;
 }
 
