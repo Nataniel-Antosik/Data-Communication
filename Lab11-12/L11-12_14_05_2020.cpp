@@ -48,6 +48,21 @@ int* konwersja(string dane, int* wyjscie) {
     return wyjscie;
 }
 
+string konwersja_String(int* wejscie, int rozmiar) {
+    string dane;
+    ostringstream str;
+    for (int i = 0; i <= rozmiar; i++) {
+        if (wejscie[i] == 1) {
+            str << '1';
+        }
+        else {
+            str << '0';
+        }
+        dane = str.str();
+    }
+    return dane;
+}
+
 int* kod_Hamminga(int* bity, bool wybor = true) {
     int* h; //wynik
     int p4 = 0; //zmienna pomocnicza dla 4 bitu parzystości 
@@ -185,7 +200,7 @@ double* demodulator_FSK(double* wejscie1, double* wejscie2, double* wejscie3, do
 int* nowa_Tablica(int** Hamming, int rozmiar, int r_p_bitow, bool tryb = true) {
     int* nowa_Tablica = new int[rozmiar]();
     int r = 0;
-    int wybor = (tryb == false) ? 8 : 7;
+    const int wybor = (tryb == false) ? 8 : 7;
     for (int i = 0; i < r_p_bitow; i++) {
         for (int j = 0; j < wybor; j++) {
             nowa_Tablica[r] = Hamming[i][j];
@@ -195,15 +210,32 @@ int* nowa_Tablica(int** Hamming, int rozmiar, int r_p_bitow, bool tryb = true) {
     return nowa_Tablica;
 }
 
-int** nowa_Tablica2(int* d_Sygnal, int rozmiar, int r_p_bitow, bool tryb = true) {
-    int** Hamming = new int* [rozmiar]();
-    int wybor = (tryb == false) ? 8 : 7;
+int** nowa_Tablica2(int* d_Sygnal, int parita_Bitow, bool tryb = true) {
+    int** Hamming = new int* [parita_Bitow]();
+    const int wybor = (tryb == false) ? 8 : 7;
+    
     int r = 0;
-    for (int i = 0; i < rozmiar; i++) {
-        Hamming[i] = &d_Sygnal[r];
-        r++;
+    for (int i = 0; i < parita_Bitow; i++) {
+        int* tmp = new int[wybor];
+        for (int j = 0; j < wybor; j++) {
+            tmp[j] = d_Sygnal[(i * 7) + j];
+        }
+        Hamming[i] = tmp;
     }
     return Hamming;
+}
+
+int* nowa_Tablica3(int** zdekodowany_Hamming, int rozmiar, int parita_Bitow, bool tryb = true) {
+    int* nowa_Tablica3 = new int[rozmiar]();
+    int r = 0;
+    const int wybor = (tryb == false) ? 8 : 7;
+    for (int i = 0; i < parita_Bitow; i++) {
+        for (int j = 0; j < 4; j++) {
+            nowa_Tablica3[r] = zdekodowany_Hamming[i][j];
+            r++;
+        }
+    }
+    return nowa_Tablica3;
 }
 
 int* rozszerzenie(int* wejscie, int* wyjscie, double czestotliwosc, double Tb, int bity) {
@@ -342,6 +374,13 @@ int main()
     d_zP = new int[rozmiar_H];
     d_zF = new int[rozmiar_H];
 
+    /*testowanie całek
+    double* zA_1_p = new double[rozmiar_Rozszerzony];
+    double* zP_1_p = new double[rozmiar_Rozszerzony];
+    double* zF_1_p = new double[rozmiar_Rozszerzony];
+    double* zF_2_p = new double[rozmiar_Rozszerzony];
+    */
+
     for (int i = 0; i < rozmiar_Rozszerzony; i++) {
         zA_1_1[i] = zA1(A2, probka2[i], F, Phi);
         zP_1_1[i] = zP1(A, probka2[i], F, Phi1);
@@ -352,6 +391,7 @@ int main()
     zA_1_m = demodulator_ASK_PSK(zA_1, zA_1_1, zA_1_m, rozmiar_H, Fs, Tb, 0.0000001);
     zP_1_m = demodulator_ASK_PSK(zP_1, zP_1_1, zP_1_m, rozmiar_H, Fs, Tb, 0.0001);
     zF_1_m = demodulator_FSK(zF_1, zF_1_1, zF_1_2, zF_1_m, rozmiar_H, Fs, Tb, 0.00001);
+
     cout << endl << "Demodulacja ASK: " << endl;
     int n = 0;
     for (int i = 0; i < rozmiar_H; i++) {
@@ -359,7 +399,7 @@ int main()
         d_zA[i] = zA_1_m[n];
         n += 100;
     }
-    
+    cout << endl;
     n = 0;
     cout << endl << "Demodulacja PSK: " << endl;
     for (int i = 0; i < rozmiar_H; i++) {
@@ -367,6 +407,7 @@ int main()
         d_zP[i] = zP_1_m[n];
         n += 100;
     }
+    cout << endl;
     n = 0;
     cout << endl << "Demodulacja FSK: " << endl;
     for (int i = 0; i < rozmiar_H; i++) {
@@ -374,28 +415,53 @@ int main()
         d_zF[i] = zF_1_m[n];
         n += 100;
     }
-    
+    /*
+    zA_1_p = x(zA_1, zA_1_1, zA_1_p, rozmiar_H, Fs, Tb);
+    zA_1_p = p(zA_1_p, rozmiar_H, Fs, Tb);
+
+    zP_1_p = x(zP_1, zP_1_1, zP_1_p, rozmiar_H, Fs, Tb);
+    zP_1_p = p(zP_1_p, rozmiar_H, Fs, Tb);
+
+    zF_2_p = x(zF_1, zF_1_2, zF_2_p, rozmiar_H, Fs, Tb);
+    zF_1_p = x(zF_1, zF_1_1, zF_1_p, rozmiar_H, Fs, Tb);
+    zF_1_p = p(zF_1_p, rozmiar_H, Fs, Tb);
+    zF_2_p = p(zF_2_p, rozmiar_H, Fs, Tb);
+    double* roz = new double[rozmiar_Rozszerzony];
+    for (int i = 0; i < rozmiar_Rozszerzony; i++) {
+        roz[i] = zF_2_p[i] - zF_1_p[i];
+    }
+    ofstream zad_zA_p("zad_zA_p.dat");
+    for (int i = 0; i < rozmiar_Rozszerzony; i++) {
+        zad_zA_p << probka2[i] << " " << zA_1_p[i] << endl;
+    }
+
+    ofstream zad_zP_p("zad_zP_p.dat");
+    for (int i = 0; i < rozmiar_Rozszerzony; i++) {
+        zad_zP_p << probka2[i] << " " << zP_1_p[i] << endl;
+    }
+
+    ofstream zad_zF_p("zad_zF_p.dat");
+    for (int i = 0; i < rozmiar_Rozszerzony; i++) {
+        zad_zF_p << probka2[i] << " " << roz[i] << endl;
+    }
+    */
     //===========Dekodowanie kanałowe===========//
+    
     int** d_zA_Hamming;
     int** d_zP_Hamming;
     int** d_zF_Hamming;
     int** dekodowanie_zA_H = new int* [rozmiar_H];
     int** dekodowanie_zP_H = new int* [rozmiar_H];
     int** dekodowanie_zF_H = new int* [rozmiar_H];
-
-    d_zA_Hamming = nowa_Tablica2(d_zA, rozmiar_H, parita_Bitow);
     
-    cout << endl << "Test zapisu do nowej tablicy: " << endl;
-    for (int i = 0; i < parita_Bitow; i++) {        //pętla po ilości pakietow po 4 bity do hamminga
-        for (int j = 0; j < wybor; j++) {
-            cout << d_zA_Hamming[i][j];
-        }      
-    }
+    d_zA_Hamming = nowa_Tablica2(d_zA, parita_Bitow);
+    d_zP_Hamming = nowa_Tablica2(d_zP, parita_Bitow);
+    d_zF_Hamming = nowa_Tablica2(d_zF, parita_Bitow);
 
     cout << endl << endl << "Oryginalny sygnal 'ALA MA KOTA': " << endl;
     for (int i = 0, j = 1; i <= rozmiar; i++, j++) { cout << Sygnal[i]; }
 
-    cout << endl << "Dekodowanie kodu Hamminga (7,4) dla zA: " << endl;
+    cout << endl << endl << "Dekodowanie kodu Hamminga (7,4) dla zA: " << endl;
     for (int i = 0; i < parita_Bitow; i++) {
         dekodowanie_zA_H[i] = dekoder_Hamminga(d_zA_Hamming[i]);
         for (int j = 0; j < 4; j++) {
@@ -403,8 +469,38 @@ int main()
         }
     }
     cout << endl;
+
+    cout << endl << "Dekodowanie kodu Hamminga (7,4) dla zP: " << endl;
+    for (int i = 0; i < parita_Bitow; i++) {
+        dekodowanie_zP_H[i] = dekoder_Hamminga(d_zP_Hamming[i]);
+        for (int j = 0; j < 4; j++) {
+            cout << dekodowanie_zP_H[i][j];
+        }
+    }
+    cout << endl;
+
+    cout << endl << "Dekodowanie kodu Hamminga (7,4) dla zF: " << endl;
+    for (int i = 0; i < parita_Bitow; i++) {
+        dekodowanie_zF_H[i] = dekoder_Hamminga(d_zF_Hamming[i]);
+        for (int j = 0; j < 4; j++) {
+            cout << dekodowanie_zF_H[i][j];
+        }
+    }
+    cout << endl << endl;
     //===========Dane===========//
-        return 0;
+    int* d_H_ZA;
+    int* d_H_ZP = new int[rozmiar];
+    int* d_H_ZF = new int[rozmiar];
+
+    d_H_ZA = nowa_Tablica3(d_zA_Hamming, rozmiar, parita_Bitow);
+    d_H_ZP = nowa_Tablica3(d_zP_Hamming, rozmiar, parita_Bitow);
+    d_H_ZF = nowa_Tablica3(d_zF_Hamming, rozmiar, parita_Bitow);
+
+    string s_zA, s_zP, s_zF;
+    s_zA = konwersja_String(d_H_ZA, rozmiar);
+    cout << endl;
+    cout << s_zA;
+    return 0;
 }
 
 
