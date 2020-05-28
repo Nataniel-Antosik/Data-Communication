@@ -5,8 +5,51 @@
 #include <bitset>
 #include <fstream>
 #include <string>
+#include <cstdlib>
+#include <ctime>
 
 using namespace std;
+
+struct zespolona {
+    double RE, IM;
+};
+
+zespolona* DFT(double* tab, int N) { //N to rozmiar
+    zespolona* tmp = new zespolona[N]();
+    for (int i = 0; i < N; i++) {
+        for (int k = 0; k < N; k++) {
+            tmp[i].RE += tab[k] * cos((k * i * 2 * M_PI) / N);
+            tmp[i].IM -= tab[k] * sin((k * i * 2 * M_PI) / N);
+        }
+    }
+    return tmp;
+}
+
+double* widmo_Amplitudowe(zespolona* tab, int rozmiar) {
+    double* tmp = new double[rozmiar]();
+    for (int j = 0; j < rozmiar; j++) {
+        tmp[j] = sqrt((tab[j].RE * tab[j].RE) + (tab[j].IM * tab[j].IM));
+    }
+    return tmp;
+}
+
+double* widmo_A_Dec(zespolona* tab, int rozmiar) {
+    double* tmp = new double[rozmiar]();
+    double* tmp2 = new double[rozmiar]();
+    tmp = widmo_Amplitudowe(tab, rozmiar);
+    for (int j = 0; j < rozmiar; j++) {
+        tmp2[j] = (10 * log10(tmp[j]));
+    }
+    return tmp2;
+}
+
+double* skala_Czestotliwosci(double FS, int rozmiar) {
+    double* tmp = new double[rozmiar]();
+    for (int j = 0; j < rozmiar; j++) {
+        tmp[j] = j * FS / rozmiar;
+    }
+    return tmp;
+}
 
 string S2BS(char in[], bool Switch) {           //String to Binary Stream
     int dlugosc = strlen(in) - 1;               //długość łańcucha - 1
@@ -57,7 +100,7 @@ string konwersja_String(int* wejscie, int rozmiar) {
         }
         else {
             str << '0';
-        }       
+        }
     }
     dane = str.str();
     return dane;
@@ -144,7 +187,7 @@ double zP1(double A, double t, double f, double phi1) {
 
 double* x(double* wejscie1, double* wejscie2, double* wyjscie, double bity, double czestotliwosc, double TB) {
     for (int i = 0; i < czestotliwosc * bity * TB; i++) {
-        wyjscie[i] = wejscie1[i] *  wejscie2[i];
+        wyjscie[i] = wejscie1[i] * wejscie2[i];
     }
     return wyjscie;
 }
@@ -155,7 +198,7 @@ double* p(double* wyjscie, double bity, double czestotliwosc, double TB) { //ca�
     for (int i = 0; i < bity; i++) {
         for (j; j < n; j++) {
             suma += wyjscie[j] * 1 / czestotliwosc * TB;
-            
+
         }
         for (k; k < n; k++) {
             wyjscie[k] = suma;
@@ -213,7 +256,7 @@ int* nowa_Tablica(int** Hamming, int rozmiar, int r_p_bitow, bool tryb = true) {
 int** nowa_Tablica2(int* d_Sygnal, int parita_Bitow, bool tryb = true) {
     int** Hamming = new int* [parita_Bitow]();
     const int wybor = (tryb == false) ? 8 : 7;
-    
+
     int r = 0;
     for (int i = 0; i < parita_Bitow; i++) {
         int* tmp = new int[wybor];
@@ -268,8 +311,38 @@ string SB2S(string binaryString) {
     return text;
 }
 
+void szum() {
+    /* Generate a new random seed from system time - do this once in your constructor */
+    srand(time(0));
+    const int numSamples = 3;
+    /* Setup constants */
+    const static int q = 15;
+    const static float c1 = (1 << q) - 1;
+    const static float c2 = ((int)(c1 / 3)) + 1;
+    const static float c3 = 1.f / c1;
+
+    /* random number in range 0 - 1 not including 1 */
+    float random = 0.f;
+
+    /* the white noise */
+    float noise = 0.f;
+
+    for (int i = 0; i < numSamples; i++)
+    {
+        random = ((float)rand() / (float)(RAND_MAX + 1));
+        noise = (2.f * ((random * c2) + (random * c2) + (random * c2)) - 3.f * (c2 - 1.f)) * c3;
+    }
+    //return noise;
+    cout << noise;
+}
+
 int main()
 {
+    for (int i = 0; i < 100; i++) {
+        szum();
+        cout << endl;
+    }
+    /*
     //Dane
     double A1, A2, A, F1, F0, F, Phi0, Phi1, Phi, Fs, Tb, N;
     double* zA_1, * zP_1, * zF_1, * zA_1_1, * zP_1_1, * zF_1_1, * zF_1_2, * zA_1_m, * zP_1_m, * zF_1_m, * probka2;
@@ -355,7 +428,41 @@ int main()
         zF_1[i] = zF(A, probka2[i], F0, F1, Phi, n_r_Hamming[i]);
     }
     cout << endl;
-    //===========Wykresy===========//
+    //=====Wykresy dla widma + szum====//
+    zespolona* zA_W, * zP_W, * zF_W;
+    double* decybel, * skala_C;
+    double alfa = 0.05;
+
+    zA_W = new zespolona[rozmiar_Rozszerzony]();
+    zP_W = new zespolona[rozmiar_Rozszerzony]();
+    zF_W = new zespolona[rozmiar_Rozszerzony]();   
+    decybel = new double[rozmiar_Rozszerzony]();
+    skala_C = new double[rozmiar_Rozszerzony]();
+
+    skala_C = skala_Czestotliwosci(Fs, rozmiar_Rozszerzony);
+
+    zA_W = DFT(zA_1, rozmiar_Rozszerzony);
+    decybel = widmo_A_Dec(zA_W, rozmiar_Rozszerzony);
+    ofstream zad_zA_W("zad_zA_W.dat");
+    for (int i = 0; i < rozmiar_Rozszerzony; i++) {
+        zad_zA_W << skala_C[i] << " " << decybel[i] << endl;
+    }
+
+    zP_W = DFT(zP_1, rozmiar_Rozszerzony);
+    decybel = widmo_A_Dec(zP_W, rozmiar_Rozszerzony);
+    ofstream zad_zP_W("zad_zP_W.dat");
+    for (int i = 0; i < rozmiar_Rozszerzony; i++) {
+        zad_zP_W << skala_C[i] << " " << decybel[i] << endl;
+    }
+
+    zF_W = DFT(zF_1, rozmiar_Rozszerzony);
+    decybel = widmo_A_Dec(zF_W, rozmiar_Rozszerzony);
+    ofstream zad_zF_W("zad_zF_W.dat");
+    for (int i = 0; i < rozmiar_Rozszerzony; i++) {
+        zad_zF_W << skala_C[i] << " " << decybel[i] << endl;
+    }
+
+    /*
     ofstream zad_zA("zad_zA.dat");
     for (int i = 0; i < rozmiar_Rozszerzony; i++) {
         zad_zA << probka2[i] << " " << zA_1[i] << endl;
@@ -368,6 +475,7 @@ int main()
     for (int i = 0; i < rozmiar_Rozszerzony; i++) {
         zad_zF << probka2[i] << " " << zF_1[i] << endl;
     }
+    
     //===========Demodulacja===========//
     zA_1_1 = new double[rozmiar_Rozszerzony];
     zP_1_1 = new double[rozmiar_Rozszerzony];
@@ -414,16 +522,16 @@ int main()
         d_zF[i] = zF_1_m[n];
         n += 100;
     }
-  
+
     //===========Dekodowanie kanałowe===========//
-    
+
     int** d_zA_Hamming;
     int** d_zP_Hamming;
     int** d_zF_Hamming;
     int** dekodowanie_zA_H = new int* [rozmiar_H];
     int** dekodowanie_zP_H = new int* [rozmiar_H];
     int** dekodowanie_zF_H = new int* [rozmiar_H];
-    
+
     d_zA_Hamming = nowa_Tablica2(d_zA, parita_Bitow);
     d_zP_Hamming = nowa_Tablica2(d_zP, parita_Bitow);
     d_zF_Hamming = nowa_Tablica2(d_zF, parita_Bitow);
@@ -470,12 +578,13 @@ int main()
     s_zA = konwersja_String(d_H_ZA, rozmiar);
     s_zP = konwersja_String(d_H_ZA, rozmiar);
     s_zF = konwersja_String(d_H_ZA, rozmiar);
-    
+
     cout << endl << "Wynik toru transmisyjnego dla modulacji zA: " << SB2S(s_zA);
     cout << endl << "Wynik toru transmisyjnego dla modulacji zP: " << SB2S(s_zP);
     cout << endl << "Wynik toru transmisyjnego dla modulacji zF: " << SB2S(s_zF);
     cout << endl;
     return 0;
+    */
 }
 
 
