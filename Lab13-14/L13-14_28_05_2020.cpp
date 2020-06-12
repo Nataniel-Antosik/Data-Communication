@@ -311,10 +311,9 @@ string SB2S(string binaryString) {
     return text;
 }
 
-void szum() {
+void noise(double* szum, double length) {
     /* Generate a new random seed from system time - do this once in your constructor */
     srand(time(0));
-    const int numSamples = 3;
     /* Setup constants */
     const static int q = 15;
     const static float c1 = (1 << q) - 1;
@@ -327,22 +326,60 @@ void szum() {
     /* the white noise */
     float noise = 0.f;
 
-    for (int i = 0; i < numSamples; i++)
+    for (int i = 0; i < length; i++)
     {
         random = ((float)rand() / (float)(RAND_MAX + 1));
         noise = (2.f * ((random * c2) + (random * c2) + (random * c2)) - 3.f * (c2 - 1.f)) * c3;
+        szum[i] = noise;
     }
-    //return noise;
-    cout << noise;
+}
+
+void dodanie_Szumu(double* zA_1, double* zP_1, double* zF_1, double* szum, double* decybel, double* skala_C, double alfa, int rozmiar_Rozszerzony) {
+    zespolona* p_zA_W, * p_zP_W, * p_zF_W;
+
+    p_zA_W = new zespolona[rozmiar_Rozszerzony]();
+    p_zP_W = new zespolona[rozmiar_Rozszerzony]();
+    p_zF_W = new zespolona[rozmiar_Rozszerzony]();
+
+    for (int i = 0; i < rozmiar_Rozszerzony; i++) {
+        zA_1[i] = (zA_1[i] * alfa) + (szum[i] * (1 - alfa));
+        zP_1[i] = (zP_1[i] * alfa) + (szum[i] * (1 - alfa));
+        zF_1[i] = (zF_1[i] * alfa) + (szum[i] * (1 - alfa));
+    }
+
+    p_zA_W = DFT(zA_1, rozmiar_Rozszerzony);
+    decybel = widmo_A_Dec(p_zA_W, rozmiar_Rozszerzony);
+    ofstream zad_p_zA_W("zad_p_zA_W.dat");
+    for (int i = 0; i < rozmiar_Rozszerzony; i++) {
+        zad_p_zA_W << skala_C[i] << " " << decybel[i] << endl;
+    }
+
+    p_zP_W = DFT(zP_1, rozmiar_Rozszerzony);
+    decybel = widmo_A_Dec(p_zP_W, rozmiar_Rozszerzony);
+    ofstream zad_p_zP_W("zad_p_zP_W.dat");
+    for (int i = 0; i < rozmiar_Rozszerzony; i++) {
+        zad_p_zP_W << skala_C[i] << " " << decybel[i] << endl;
+    }
+
+    p_zF_W = DFT(zF_1, rozmiar_Rozszerzony);
+    decybel = widmo_A_Dec(p_zF_W, rozmiar_Rozszerzony);
+    ofstream zad_p_zF_W("zad_p_zF_W.dat");
+    for (int i = 0; i < rozmiar_Rozszerzony; i++) {
+        zad_p_zF_W << skala_C[i] << " " << decybel[i] << endl;
+    }
+}
+
+double BER(int* sygnal, int* sygnal_Szum, int rozmiar) {
+    double BER = 0.0;
+    for (int i = 0; i < rozmiar; i++) {
+        if (sygnal[i] != sygnal_Szum[i]) BER += 1;
+    }
+    return (BER / rozmiar);
 }
 
 int main()
 {
-    for (int i = 0; i < 100; i++) {
-        szum();
-        cout << endl;
-    }
-    /*
+    
     //Dane
     double A1, A2, A, F1, F0, F, Phi0, Phi1, Phi, Fs, Tb, N;
     double* zA_1, * zP_1, * zF_1, * zA_1_1, * zP_1_1, * zF_1_1, * zF_1_2, * zA_1_m, * zP_1_m, * zF_1_m, * probka2;
@@ -429,15 +466,19 @@ int main()
     }
     cout << endl;
     //=====Wykresy dla widma + szum====//
+    float static alfa1 = 0.15;
+    float static alfa2 = 0.5;
+    float static alfa3 = 0.85;
+
     zespolona* zA_W, * zP_W, * zF_W;
-    double* decybel, * skala_C;
-    double alfa = 0.05;
+    double* decybel, * skala_C, * szum;
 
     zA_W = new zespolona[rozmiar_Rozszerzony]();
     zP_W = new zespolona[rozmiar_Rozszerzony]();
     zF_W = new zespolona[rozmiar_Rozszerzony]();   
     decybel = new double[rozmiar_Rozszerzony]();
     skala_C = new double[rozmiar_Rozszerzony]();
+    szum = new double[rozmiar_Rozszerzony]();
 
     skala_C = skala_Czestotliwosci(Fs, rozmiar_Rozszerzony);
 
@@ -462,20 +503,20 @@ int main()
         zad_zF_W << skala_C[i] << " " << decybel[i] << endl;
     }
 
-    /*
-    ofstream zad_zA("zad_zA.dat");
-    for (int i = 0; i < rozmiar_Rozszerzony; i++) {
-        zad_zA << probka2[i] << " " << zA_1[i] << endl;
-    }
-    ofstream zad_zP("zad_zP.dat");
-    for (int i = 0; i < rozmiar_Rozszerzony; i++) {
-        zad_zP << probka2[i] << " " << zP_1[i] << endl;
-    }
-    ofstream zad_zF("zad_zF.dat");
-    for (int i = 0; i < rozmiar_Rozszerzony; i++) {
-        zad_zF << probka2[i] << " " << zF_1[i] << endl;
-    }
+    noise(szum, rozmiar_Rozszerzony); //stworzenie tablicy zawierającej szum
+
+    //==============Alfa1==============//
     
+    //dodanie_Szumu(zA_1, zP_1, zF_1, szum, decybel, skala_C, alfa1, rozmiar_Rozszerzony);
+
+    //==============Alfa2==============//
+
+    //dodanie_Szumu(zA_1, zP_1, zF_1, szum, decybel, skala_C, alfa2, rozmiar_Rozszerzony);
+
+    //==============Alfa3==============//
+
+    dodanie_Szumu(zA_1, zP_1, zF_1, szum, decybel, skala_C, alfa3, rozmiar_Rozszerzony);
+ 
     //===========Demodulacja===========//
     zA_1_1 = new double[rozmiar_Rozszerzony];
     zP_1_1 = new double[rozmiar_Rozszerzony];
@@ -575,16 +616,17 @@ int main()
     d_H_ZP = nowa_Tablica3(dekodowanie_zP_H, rozmiar + 1, parita_Bitow);
     d_H_ZF = nowa_Tablica3(dekodowanie_zF_H, rozmiar + 1, parita_Bitow);
 
-    s_zA = konwersja_String(d_H_ZA, rozmiar);
-    s_zP = konwersja_String(d_H_ZA, rozmiar);
-    s_zF = konwersja_String(d_H_ZA, rozmiar);
+    double b1 = BER(Sygnal, d_H_ZA, rozmiar + 1);
+    double b2 = BER(Sygnal, d_H_ZP, rozmiar + 1);
+    double b3 = BER(Sygnal, d_H_ZF, rozmiar + 1);
 
-    cout << endl << "Wynik toru transmisyjnego dla modulacji zA: " << SB2S(s_zA);
-    cout << endl << "Wynik toru transmisyjnego dla modulacji zP: " << SB2S(s_zP);
-    cout << endl << "Wynik toru transmisyjnego dla modulacji zF: " << SB2S(s_zF);
+    s_zA = konwersja_String(d_H_ZA, rozmiar);
+    s_zP = konwersja_String(d_H_ZP, rozmiar);
+    s_zF = konwersja_String(d_H_ZF, rozmiar);
+
+    cout << endl << "Wynik toru transmisyjnego dla modulacji zA: " << SB2S(s_zA) << " " << "Wspolczynnik BER: " << b1;
+    cout << endl << "Wynik toru transmisyjnego dla modulacji zP: " << SB2S(s_zP) << " " << "Wspolczynnik BER: " << b2;
+    cout << endl << "Wynik toru transmisyjnego dla modulacji zF: " << SB2S(s_zF) << " " << "Wspolczynnik BER: " << b3;
     cout << endl;
     return 0;
-    */
 }
-
-
